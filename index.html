@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>お楽しみガチャ</title>
+    <style>
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f4f8; font-family: sans-serif; }
+        #gacha-container { text-align: center; width: 90%; max-width: 400px; background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        h1 { font-size: 1.4rem; color: #333; margin: 0 0 20px 0; }
+        
+        #stage { height: 300px; display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 20px; }
+        
+        /* カプセル */
+        .capsule-container { position: absolute; animation: shake 0.5s infinite linear; }
+        .capsule-body { width: 120px; height: 120px; background: linear-gradient(135deg, #ff6b6b, #ff8e53); border-radius: 50%; border: 8px solid #fff; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; font-size: 3rem; color: white; font-weight: bold; }
+        @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(-5px, 3px) rotate(-5deg); } 50% { transform: translate(0, -3px) rotate(0deg); } 75% { transform: translate(5px, 3px) rotate(5deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        
+        /* 結果画像 */
+        #result-image { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); opacity: 0; transform: scale(0.3) rotate(-20deg); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #result-image.show { opacity: 1; transform: scale(1) rotate(0deg); }
+        .hidden { display: none !important; }
+        
+        /* ボタン */
+        .btn { padding: 12px 30px; background-color: #3498db; color: white; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); transition: transform 0.1s, background-color 0.2s; }
+        .btn:active { transform: scale(0.95); background-color: #2980b9; }
+        .btn:disabled { background-color: #bdc3c7; box-shadow: none; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div id="gacha-container">
+        <h1>🎁 本日のガチャ 🎁</h1>
+        <div id="stage">
+            <div id="capsule" class="capsule-container">
+                <div class="capsule-body">?</div>
+            </div>
+            <img id="result-image" src="" alt="ガチャ結果">
+        </div>
+        <button id="retry-btn" class="btn" onclick="playGacha()">ガチャを引く！</button>
+    </div>
+
+    <script>
+        const imageList = [
+            "1.jpg",
+            "2.jpg",
+            "3.jpg"
+        ];
+        
+        let lastIndex = -1;
+        const capsule = document.getElementById('capsule');
+        const resultImage = document.getElementById('result-image');
+        const retryBtn = document.getElementById('retry-btn');
+
+        // 画像先読み
+        function preloadAllImages() {
+            imageList.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        }
+
+        function playGacha() {
+            retryBtn.disabled = true;
+            retryBtn.textContent = "抽選中...";
+            capsule.classList.remove('hidden');
+            resultImage.classList.remove('show');
+            
+            // 被りなし抽選ロジック
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * imageList.length);
+            } while (randomIndex === lastIndex && imageList.length > 1);
+            
+            lastIndex = randomIndex;
+            
+            // ★ここも変更：キャッシュバスターを追加（画像のURL末尾にランダムな数字をつけて、毎回新しい画像だと思わせる）
+            const selectedImageSrc = imageList[randomIndex] + "?v=" + new Date().getTime();
+
+            // 2秒後に表示
+            setTimeout(() => {
+                resultImage.src = selectedImageSrc;
+                
+                capsule.classList.add('hidden');
+                resultImage.classList.add('show');
+                
+                retryBtn.disabled = false;
+                retryBtn.textContent = "もう一度引く";
+            }, 2000);
+        }
+
+        window.onload = function() {
+            preloadAllImages();
+            playGacha();
+        };
+    </script>
+</body>
+</html>
